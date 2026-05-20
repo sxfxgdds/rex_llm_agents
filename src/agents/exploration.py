@@ -48,7 +48,11 @@ class ReputationExplorationController:
         else:
             raise ValueError(f"Unknown exploration mode: {self.mode}")
 
-        if memory is not None and memory.defected_recently(self.shock_window):
+        if (
+            self.mode != "fixed"
+            and memory is not None
+            and memory.defected_recently(self.shock_window)
+        ):
             return ExplorationState(
                 temperature=max(0.0, state.temperature * self.shock_temperature_multiplier),
                 reflection_depth=state.reflection_depth,
