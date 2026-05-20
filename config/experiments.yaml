@@ -1,0 +1,41 @@
+fixed_low_temperature:
+  exploration:
+    mode: fixed
+    fixed_temperature: 0.2
+
+fixed_mid_temperature:
+  exploration:
+    mode: fixed
+    fixed_temperature: 0.5
+
+fixed_high_temperature:
+  exploration:
+    mode: fixed
+    fixed_temperature: 0.8
+
+reputation_linear:
+  exploration:
+    mode: linear
+    t_min: 0.2
+    t_max: 0.8
+
+reputation_piecewise:
+  exploration:
+    mode: piecewise
+
+reputation_piecewise_with_attack:
+  exploration:
+    mode: piecewise
+  attack:
+    enabled: true
+    attack_round: 50
+    target_fraction: 0.2
+    reputation_drop: 0.5
+
+reputation_piecewise_with_malicious_agents:
+  exploration:
+    mode: piecewise
+  malicious:
+    fraction: 0.1
+    warmup_rounds: 20
+    exploit_threshold: 0.7

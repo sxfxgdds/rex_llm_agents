@@ -1,0 +1,25 @@
+num_agents: 20
+num_rounds: 100
+game: prisoner_dilemma
+backend: mock
+seed: 42
+initial_reputation: 0.5
+exploration:
+  mode: piecewise
+  fixed_temperature: 0.5
+  t_min: 0.2
+  t_max: 0.8
+reputation:
+  alpha: 0.8
+  defect_penalty_scale: 1.5
+  cooperate_recovery_scale: 0.7
+malicious:
+  fraction: 0.0
+  warmup_rounds: 20
+  exploit_threshold: 0.7
+attack:
+  enabled: false
+  attack_round: 50
+  target_fraction: 0.2
+  reputation_drop: 0.5
+output_dir: outputs/results
