@@ -1,7 +1,13 @@
 num_agents: 10
 num_rounds: 300
 game: prisoner_dilemma
-backend: mock
+backend:
+  type: mock
+  model: gpt-4o-mini
+  api_key_env: OPENAI_API_BASE
+  base_url: https://api.openai.com/v1
+  max_retries: 2
+  timeout: 30.0
 seed: 42
 seeds: [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021,
         2223, 2425, 2627, 2829, 3031, 3233, 3435, 3637, 3839, 4041,

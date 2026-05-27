@@ -1,0 +1,11 @@
+experiment_name,condition,round,num_seeds,cooperation_rate_mean,cooperation_rate_ci95,defection_rate_mean,defection_rate_ci95,avg_reputation_mean,avg_reputation_ci95,reputation_variance_mean,reputation_variance_ci95,avg_temperature_mean,avg_temperature_ci95,avg_payoff_mean,avg_payoff_ci95,social_welfare_mean,social_welfare_ci95,action_entropy_mean,action_entropy_ci95
+test_openai,test_openai,1,2,1.0,0.0,0.0,0.0,0.57,0.0,0.0,0.0,0.5,0.0,3.0,0.0,18.0,0.0,0.0,0.0
+test_openai,test_openai,2,2,1.0,0.0,0.0,0.0,0.6302,0.0,0.0,0.0,0.5,0.0,3.0,0.0,18.0,0.0,0.0,0.0
+test_openai,test_openai,3,2,1.0,0.0,0.0,0.0,0.681972,0.0,0.0,0.0,0.5,0.0,3.0,0.0,18.0,0.0,0.0,0.0
+test_openai,test_openai,4,2,1.0,0.0,0.0,0.0,0.726496,0.0,0.0,0.0,0.5,0.0,3.0,0.0,18.0,0.0,0.0,0.0
+test_openai,test_openai,5,2,1.0,0.0,0.0,0.0,0.764786,0.0,0.0,0.0,0.75,0.0,3.0,0.0,18.0,0.0,0.0,0.0
+test_openai,test_openai,6,2,1.0,0.0,0.0,0.0,0.797716,0.0,0.0,0.0,0.75,0.0,3.0,0.0,18.0,0.0,0.0,0.0
+test_openai,test_openai,7,2,1.0,0.0,0.0,0.0,0.826036,0.0,0.0,0.0,0.75,0.0,3.0,0.0,18.0,0.0,0.0,0.0
+test_openai,test_openai,8,2,1.0,0.0,0.0,0.0,0.850391,0.0,0.0,0.0,0.75,0.0,3.0,0.0,18.0,0.0,0.0,0.0
+test_openai,test_openai,9,2,1.0,0.0,0.0,0.0,0.871336,0.0,0.0,0.0,0.75,0.0,3.0,0.0,18.0,0.0,0.0,0.0
+test_openai,test_openai,10,2,1.0,0.0,0.0,0.0,0.889349,0.0,0.0,0.0,0.75,0.0,3.0,0.0,18.0,0.0,0.0,0.0

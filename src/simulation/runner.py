@@ -12,6 +12,7 @@ from typing import Any
 from src.agents.exploration import ReputationExplorationController
 from src.agents.llm_agent import LLMAgent
 from src.agents.reputation import ReputationModel
+from src.backends.base_backend import BaseLLMBackend
 from src.backends.mock_backend import MockLLMBackend
 from src.games.prisoner_dilemma import PrisonerDilemmaGame
 from src.metrics.metrics import (
@@ -361,13 +362,13 @@ class SimulationRunner:
         )
 
     def _build_agents(self) -> list[LLMAgent]:
-        backend_name = str(self.config.get("backend", "mock"))
-        if backend_name != "mock":
-            raise ValueError(f"Unsupported backend in minimal version: {backend_name}")
-
+        backend_config = self.config.get("backend", {})
+        if isinstance(backend_config, str):
+            backend_config = {"type": backend_config}
+        backend_name = str(backend_config.get("type", "mock"))
         num_agents = int(self.config.get("num_agents", 20))
         initial_reputation = float(self.config.get("initial_reputation", 0.5))
-        backend = MockLLMBackend(seed=self.seed + 1000)
+        backend = self._build_backend(backend_name, backend_config)
         return [
             LLMAgent(
                 agent_id=agent_id,
@@ -376,6 +377,52 @@ class SimulationRunner:
             )
             for agent_id in range(num_agents)
         ]
+
+    def _build_backend(self, backend_name: str, backend_config: dict) -> BaseLLMBackend:
+        if backend_name == "mock":
+            return MockLLMBackend(seed=self.seed + 1000)
+        elif backend_name == "openai":
+            return self._build_openai_backend(backend_config)
+        else:
+            raise ValueError(
+                f"Unsupported backend: {backend_name}. "
+                f"Available: mock, openai"
+            )
+
+    def _build_openai_backend(self, backend_config: dict) -> BaseLLMBackend:
+        try:
+            from src.backends.openai_backend import OpenAIChatBackend
+        except ImportError:
+            raise ImportError(
+                "openai package is required for the openai backend. "
+                "Install it with: pip install openai"
+            )
+
+        import os
+
+        model = str(backend_config.get("model", "gpt-4o-mini"))
+        api_key_env = str(backend_config.get("api_key_env", "OPENAI_API_KEY"))
+        base_url = str(backend_config.get("base_url", "https://api.openai.com/v1"))
+        max_retries = int(backend_config.get("max_retries", 2))
+        timeout = float(backend_config.get("timeout", 30.0))
+
+        api_key = os.environ.get(api_key_env, "")
+        if not api_key:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                f"Environment variable '{api_key_env}' not set. "
+                f"API calls will fail."
+            )
+
+        return OpenAIChatBackend(
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
+            max_retries=max_retries,
+            timeout=timeout,
+        )
 
     def _apply_malicious_injection(self) -> None:
         malicious_config = self.config.get("malicious", {})
