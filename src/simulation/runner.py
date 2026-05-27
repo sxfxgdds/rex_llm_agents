@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import math
 import random
+from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -62,6 +64,29 @@ ROUND_FIELDNAMES = [
     "action_entropy",
 ]
 
+SUMMARY_FIELDNAMES = [
+    "experiment_name",
+    "condition",
+    "round",
+    "num_seeds",
+    "cooperation_rate_mean",
+    "cooperation_rate_ci95",
+    "defection_rate_mean",
+    "defection_rate_ci95",
+    "avg_reputation_mean",
+    "avg_reputation_ci95",
+    "reputation_variance_mean",
+    "reputation_variance_ci95",
+    "avg_temperature_mean",
+    "avg_temperature_ci95",
+    "avg_payoff_mean",
+    "avg_payoff_ci95",
+    "social_welfare_mean",
+    "social_welfare_ci95",
+    "action_entropy_mean",
+    "action_entropy_ci95",
+]
+
 
 @dataclass
 class SimulationResult:
@@ -70,6 +95,14 @@ class SimulationResult:
     round_csv: Path
     agent_rows: list[dict[str, Any]]
     round_rows: list[dict[str, Any]]
+
+
+@dataclass
+class MultiSeedResult:
+    condition: str
+    seeds: list[int]
+    summary_csv: Path
+    summary_rows: list[dict[str, Any]]
 
 
 @dataclass
@@ -87,6 +120,7 @@ class SimulationRunner:
     def __post_init__(self) -> None:
         self.seed = int(self.config.get("seed", 42))
         self.rng = random.Random(self.seed)
+        self._agents_built = False
         self.game = self._build_game()
         self.reputation_model = self._build_reputation_model()
         self.exploration_controller = self._build_exploration_controller()
@@ -214,6 +248,84 @@ class SimulationRunner:
             agent_rows=agent_rows,
             round_rows=round_rows,
         )
+
+    @classmethod
+    def run_multi_seed(
+        cls,
+        default_path: str | Path,
+        experiments_path: str | Path,
+        condition: str,
+        experiment_name: str = "rex_experiment",
+        seeds: list[int] | None = None,
+    ) -> "MultiSeedResult":
+        if seeds is None:
+            seeds = list(range(42, 72))
+
+        all_round_rows: list[list[dict[str, Any]]] = []
+        for seed in seeds:
+            default_config = load_yaml(default_path)
+            experiments = load_yaml(experiments_path)
+            config = deep_update(default_config, experiments[condition])
+            config["seed"] = seed
+            runner = cls(config=config, experiment_name=experiment_name, condition=condition)
+            result = runner.run()
+            all_round_rows.append(result.round_rows)
+
+        summary_rows = cls._aggregate_seeds(experiment_name, condition, seeds, all_round_rows)
+
+        output_dir = Path(all_round_rows[0][0].get("experiment_name", experiment_name)).parent if all_round_rows else Path("outputs/results")
+        output_dir = Path("outputs/results")
+        summary_csv = output_dir / f"{condition}_summary.csv"
+        write_csv_rows(summary_csv, SUMMARY_FIELDNAMES, summary_rows)
+
+        return MultiSeedResult(
+            condition=condition,
+            seeds=seeds,
+            summary_csv=summary_csv,
+            summary_rows=summary_rows,
+        )
+
+    @staticmethod
+    def _aggregate_seeds(
+        experiment_name: str,
+        condition: str,
+        seeds: list[int],
+        all_round_rows: list[list[dict[str, Any]]],
+    ) -> list[dict[str, Any]]:
+        num_rounds = len(all_round_rows[0])
+        num_seeds = len(seeds)
+        metric_keys = [
+            "cooperation_rate",
+            "defection_rate",
+            "avg_reputation",
+            "reputation_variance",
+            "avg_temperature",
+            "avg_payoff",
+            "social_welfare",
+            "action_entropy",
+        ]
+
+        summary_rows: list[dict[str, Any]] = []
+        for r in range(num_rounds):
+            row: dict[str, Any] = {
+                "experiment_name": experiment_name,
+                "condition": condition,
+                "round": r + 1,
+                "num_seeds": num_seeds,
+            }
+            for key in metric_keys:
+                values = [float(seed_rows[r][key]) for seed_rows in all_round_rows]
+                mean = sum(values) / num_seeds
+                if num_seeds > 1:
+                    variance = sum((v - mean) ** 2 for v in values) / (num_seeds - 1)
+                    std_err = math.sqrt(variance / num_seeds)
+                    ci95 = 1.96 * std_err
+                else:
+                    ci95 = 0.0
+                row[f"{key}_mean"] = round(mean, 6)
+                row[f"{key}_ci95"] = round(ci95, 6)
+            summary_rows.append(row)
+        return summary_rows
 
     @property
     def _malicious_warmup_rounds(self) -> int:
@@ -375,14 +487,25 @@ def run_conditions(
     experiments_path: str | Path,
     conditions: list[str],
     experiment_name: str = "rex_experiment",
-) -> list[SimulationResult]:
-    results = []
+    seeds: list[int] | None = None,
+) -> list[SimulationResult | MultiSeedResult]:
+    results: list[SimulationResult | MultiSeedResult] = []
     for condition in conditions:
-        runner = SimulationRunner.from_config_files(
-            default_path=default_path,
-            experiments_path=experiments_path,
-            condition=condition,
-            experiment_name=experiment_name,
-        )
-        results.append(runner.run())
+        if seeds is not None:
+            result = SimulationRunner.run_multi_seed(
+                default_path=default_path,
+                experiments_path=experiments_path,
+                condition=condition,
+                experiment_name=experiment_name,
+                seeds=seeds,
+            )
+        else:
+            runner = SimulationRunner.from_config_files(
+                default_path=default_path,
+                experiments_path=experiments_path,
+                condition=condition,
+                experiment_name=experiment_name,
+            )
+            result = runner.run()
+        results.append(result)
     return results

@@ -28,7 +28,7 @@ reputation_piecewise_with_attack:
     mode: piecewise
   attack:
     enabled: true
-    attack_round: 50
+    attack_round: 150
     target_fraction: 0.2
     reputation_drop: 0.5
 
@@ -36,6 +36,6 @@ reputation_piecewise_with_malicious_agents:
   exploration:
     mode: piecewise
   malicious:
-    fraction: 0.1
+    fraction: 0.2
     warmup_rounds: 20
     exploit_threshold: 0.7

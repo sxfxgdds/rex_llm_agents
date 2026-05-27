@@ -1,8 +1,11 @@
-num_agents: 20
-num_rounds: 100
+num_agents: 10
+num_rounds: 300
 game: prisoner_dilemma
 backend: mock
 seed: 42
+seeds: [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021,
+        2223, 2425, 2627, 2829, 3031, 3233, 3435, 3637, 3839, 4041,
+        4243, 4445, 4647, 4849, 5051, 5253, 5455, 5657, 5859, 6061]
 initial_reputation: 0.5
 exploration:
   mode: piecewise
@@ -19,7 +22,7 @@ malicious:
   exploit_threshold: 0.7
 attack:
   enabled: false
-  attack_round: 50
+  attack_round: 150
   target_fraction: 0.2
   reputation_drop: 0.5
 output_dir: outputs/results
